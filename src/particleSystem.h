@@ -11,11 +11,12 @@
 
 class ParticleSystem {
 public:
-    ParticleSystem(unsigned int width, unsigned int height, int count) {
+    ParticleSystem(unsigned int width, unsigned int height, int count, double r) {
         this->width = width;
         this->height = height;
         this->wind_f = Vector3D(0, 0, 0);
         this->count = count;
+        this->r = r;
         this->collisionMapRes = width * height;
         wetMap = (char*) calloc((width * height * 3 + 3) / 4 * 4, sizeof(char));
         collisionMap = (unsigned char*)calloc(3 * collisionMapRes, sizeof(unsigned char));
@@ -37,6 +38,7 @@ public:
     int count;
     Vector3D wind_f;
     double sky_midpoint;
+    double r;
 
     void updateWind(Vector3D wind_f);
 

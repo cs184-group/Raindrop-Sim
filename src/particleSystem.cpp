@@ -57,25 +57,34 @@ void ParticleSystem::simulate(double frames_per_sec, double simulation_steps, ve
                     Plane* p = (Plane*) co;
                     Vector3D pos = Vector3D(0, 0, 0);
                     if (p->collide(*drops[i], pos)) {
-                    
-                        // check that droplet hits the plane
-                        if (pos.x >= 0 && pos.z >= 0 && pos.x < 8 && pos.z < 8) {
- 
-                            double x_pos = width * pos.x / 8.0;
-                            double z_pos = height * pos.z / 8.0;
 
-                            int index = round(3 * (z_pos * height + x_pos));
+                        for (double x = -r; x < r; x += 8.0 / width) {
+                            for (double z = -r; z < r; z += 8.0 / height) {
+                                Vector3D cur_pos = pos + Vector3D(x, 0, z);
+
+                                double distance = sqrt(x * x + z * z);
+
+                                // check that droplet hits the plane
+                                if (cur_pos.x >= 0 && cur_pos.z >= 0 && cur_pos.x < 8 && cur_pos.z < 8 && distance <= this->r) {
+         
+                                    double x_pos = width * cur_pos.x / 8.0;
+                                    double z_pos = height * cur_pos.z / 8.0;
+
+                                    int index = round(3 * (z_pos * height + x_pos));
 
 
-                            if (collisionMap[index] <= 10) {
-                                collisionMap[index] = 0;
-                                collisionMap[index + 1] = 0;
-                                collisionMap[index + 2] = 0;
-                            }
-                            else {
-                                collisionMap[index] -= 10;
-                                collisionMap[index + 1] -= 10;
-                                collisionMap[index + 2] -= 10;
+                                    if (collisionMap[index] <= 10) {
+                                        collisionMap[index] = 0;
+                                        collisionMap[index + 1] = 0;
+                                        collisionMap[index + 2] = 0;
+                                    } else {
+                                        int d = 10 * round((this->r - distance) / this->r);  
+                                        collisionMap[index] -= d;
+                                        collisionMap[index + 1] -= d;
+                                        collisionMap[index + 2] -= d;
+                                    }
+                                }
+
                             }
                         }
 
