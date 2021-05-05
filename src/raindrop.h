@@ -1,5 +1,5 @@
-#ifndef CGL_RAINDROP_H
-#define CGL_RAINDROP_H
+#ifndef CLOTHSIM_RAINDROP_H
+#define CLOTHSIM_RAINDROP_H
 
 #include "CGL/CGL.h"
 #include "CGL/vector3D.h"
@@ -33,16 +33,13 @@ private:
 
 class Raindrop {
 public:
-	Raindrop(double mass, Vector3D pos, Vector3D vel);
+	Raindrop(Vector3D pos, Vector3D hit);
 
 	void render(GLShader& shader, RaindropRenderer &raindrop_renderer);
-	
-	double mass;
+
+	static Vector3D vel;
 	Vector3D pos;
-	Vector3D last_pos;
-	Vector3D vel;
-	Vector3D forces;
-	Sphere* s;
+	Vector3D hit;
 };
 
-#endif // CGL_RAINDROP_H
+#endif // CLOTHSIM_RAINDROP_H
