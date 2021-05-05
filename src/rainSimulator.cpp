@@ -253,7 +253,7 @@ void RainSimulator::init() {
 
     // Initialize particle system
     //rainSystem = new ParticleSystem(128, 128, 100);
-    rainSystem = new ParticleSystem(50, 50, 10); 
+    rainSystem = new ParticleSystem(100, 100, 10, 0.16); 
     rainSystem->init_raindrops();
 
     // Initialize camera
