@@ -1089,6 +1089,7 @@ src/CMakeFiles/clothsim.dir/misc/file_utils.cpp.o: src/misc/file_utils.h
 
 src/CMakeFiles/clothsim.dir/misc/sphere_drawing.cpp.o: src/misc/sphere_drawing.cpp
 src/CMakeFiles/clothsim.dir/misc/sphere_drawing.cpp.o: src/misc/sphere_drawing.h
+src/CMakeFiles/clothsim.dir/misc/sphere_drawing.cpp.o: /usr/local/include/omp.h
 src/CMakeFiles/clothsim.dir/misc/sphere_drawing.cpp.o: CGL/include/CGL/CGL.h
 src/CMakeFiles/clothsim.dir/misc/sphere_drawing.cpp.o: CGL/include/CGL/color.h
 src/CMakeFiles/clothsim.dir/misc/sphere_drawing.cpp.o: CGL/include/CGL/misc.h

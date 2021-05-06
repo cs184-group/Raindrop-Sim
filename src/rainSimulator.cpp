@@ -406,9 +406,7 @@ void RainSimulator::drawContents() {
         vector<Vector3D> external_accelerations = {gravity};
         rainSystem->updateWind(cur_wind);
 
-        for (int i = 0; i < simulation_steps; i++) {
-            rainSystem->simulate(frames_per_sec, simulation_steps, external_accelerations, collision_objects);
-        }
+        rainSystem->simulate(frames_per_sec, simulation_steps, external_accelerations, collision_objects);
         // dyn_texture(1, m_gl_texture_1, rainSystem->wetMap, rainSystem->width, rainSystem->height);
         
     }
@@ -436,9 +434,6 @@ void RainSimulator::drawContents() {
     }
     splash_renderer.render_all(shader, is_paused);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA); 
-
     // Everything except the plane
     for (CollisionObject *co : *collision_objects) {
         if (typeid(*co) == typeid(Sphere)) {
@@ -447,12 +442,13 @@ void RainSimulator::drawContents() {
             } else {
                 shader = prepareShader(SPHERE_SHADER_IDX);
             }
+            co->render(shader);
         } else if (typeid(*co) == typeid(Plane)) {
             continue;
         } else {
             shader = prepareShader(-1);
+            co->render(shader);
         }
-        co->render(shader);
     }
 
     // The plane
@@ -461,8 +457,6 @@ void RainSimulator::drawContents() {
             //cout << rainSystem->width << "," << rainSystem->height << "; " << rainSystem->collisionMapRes << endl;
             shader = prepareShader(GROUND_SHADER_IDX);
             dyn_texture(3, m_gl_texture_3, rainSystem->collisionMap, rainSystem->width, rainSystem->height);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             co->render(shader);
             break;
         }
