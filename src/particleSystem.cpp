@@ -32,7 +32,7 @@ void ParticleSystem::updateWind(Vector3D wind_f) {
 void ParticleSystem::blur() {
     unsigned char *in, *out;
     in = collisionMap;
-    out = (unsigned char*) malloc(sizeof(unsigned char) * width * height);
+    out = (unsigned char*) malloc(sizeof(unsigned char) * (width * height + 103) /4 * 4);
 
     int w = width, h = height;
     // kernel: [1 m 1]
