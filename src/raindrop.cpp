@@ -90,8 +90,11 @@ void RaindropRenderer::render(GLShader& shader, Vector3D& position, Vector3D& ve
 		}
 	}
 
-	float dist = (position - Vector3D(4.0, 4.0, 4.0)).norm();
-	shader.setUniform("opacity", clamp(dist / 5.0, 0.0, 1.0));
+    glEnable(GL_BLEND);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+
+    float dist = -pos(2); //(position - Vector3D(4.0, 4.0, 4.0)).norm();
+	shader.setUniform("opacity", clamp(5.f / dist, 0.f, 1.f));
 
 	/*shader.setUniform("view", view);*/
 	shader.setUniform("u_model", u_model);
@@ -159,10 +162,9 @@ void SplashRenderer::render(GLShader& shader, SplashInfo &s) {
 	Vector2f offset = Vector2f(s.idx * len_x, 0.0);
 	shader.setUniform("u_offset", offset);
 	shader.setUniform("u_model", u_model);
+    float dist = -pos(2); //(position - Vector3D(4.0, 4.0, 4.0)).norm();
+    shader.setUniform("opacity", clamp(3.f / dist, 0.f, 1.f));
 	glBindVertexArray(this->quadVAO);
-
-	/*glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);*/
 
 	shader.drawArray(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
@@ -174,8 +176,10 @@ void SplashRenderer::render_all(GLShader& shader, bool is_paused) {
 		if (s.idx == end_idx)
 			c++;
 		if (!is_paused)
-			s.idx += 1;
-		SplashRenderer::render(shader, s);
+			s.idx += 4;
+        glEnable(GL_BLEND);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+        SplashRenderer::render(shader, s);
 	}
 	for (int i = 0; i < c; i++) {
 		splashes.pop_front();

@@ -339,8 +339,7 @@ GLShader &RainSimulator::prepareShader(int index) {
         shader.setUniform("u_texture_4", 4, false);
         shader.setUniform("u_texture_cubemap", 9, false);
         return shader;
-    }
-    else if (index == SPLASH_SHADER_IDX) {
+    } else if (index == SPLASH_SHADER_IDX) {
         splash_renderer.update_view(view);
         shader.setUniform("u_view_projection", projection);
         shader.setUniform("u_texture_7", 7, false);
@@ -417,6 +416,9 @@ void RainSimulator::drawContents() {
     GLShader &shader = prepareShader(MESH_SHADER_IDX);
     drawMesh(shader);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+
     shader = prepareShader(RAINDROP_SHADER_IDX);
     for (int i = 0; i < rainSystem->drops.size(); i += 1) {
         rainSystem->drops[i]->render(shader, raindrop_renderer);
@@ -427,12 +429,8 @@ void RainSimulator::drawContents() {
     Vector3D vel(0.0, 1.0, 0.0);
     raindrop_renderer.render(shader, pos, vel);*/
 
-    Vector3D pos(0.5, 0.2, 0.5);
-    shader = prepareShader(SPLASH_SHADER_IDX);
-    if (splash_renderer.splashes.size() < 1) {
-        splash_renderer.add_splash(pos);
-    }
-    splash_renderer.render_all(shader, is_paused);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
 
     // Everything except the plane
     for (CollisionObject *co : *collision_objects) {
@@ -442,13 +440,12 @@ void RainSimulator::drawContents() {
             } else {
                 shader = prepareShader(SPHERE_SHADER_IDX);
             }
-            co->render(shader);
         } else if (typeid(*co) == typeid(Plane)) {
             continue;
         } else {
             shader = prepareShader(-1);
-            co->render(shader);
         }
+        co->render(shader);
     }
 
     // The plane
@@ -457,10 +454,21 @@ void RainSimulator::drawContents() {
             //cout << rainSystem->width << "," << rainSystem->height << "; " << rainSystem->collisionMapRes << endl;
             shader = prepareShader(GROUND_SHADER_IDX);
             dyn_texture(3, m_gl_texture_3, rainSystem->collisionMap, rainSystem->width, rainSystem->height);
+            glEnable(GL_BLEND);
+            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
             co->render(shader);
             break;
         }
     }
+
+    Vector3D pos(0.5, 0.2, 0.5);
+    shader = prepareShader(SPLASH_SHADER_IDX);
+    if (splash_renderer.splashes.size() < 1) {
+        splash_renderer.add_splash(pos);
+    }
+    glEnable(GL_BLEND);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+    splash_renderer.render_all(shader, is_paused);
 }
 
 void RainSimulator::drawMesh(GLShader &shader) {

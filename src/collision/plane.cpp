@@ -83,6 +83,7 @@ void Plane::render(GLShader &shader) {
     if (shader.attrib("in_uv", false) != -1) {
         shader.uploadAttrib("in_uv", texcoords);
     }
+
     shader.drawArray(GL_TRIANGLE_STRIP, 0, 4);
     shader.freeAttrib("in_position");
     shader.freeAttrib("in_normal");

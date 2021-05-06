@@ -9,5 +9,7 @@ uniform mat4 u_view_projection;
 
 void main() {
   v_texcoords = vec2(vertex.z + u_offset.x, vertex.w);
-  gl_Position = u_view_projection * u_model * vec4(vertex.xy, 0.0, 1.0);
+  vec4 view_v = u_view_projection * u_model * vec4(vertex.xy, 0, 1);
+  gl_Position = view_v;
+  //gl_Position = vec4(view_v.xy, 0, 1);
 }

@@ -7,6 +7,7 @@ uniform vec2 u_texture_3_size;
 
 uniform vec3 u_light_pos;
 uniform vec3 u_light_intensity;
+uniform vec4 u_color;
 
 uniform float avg_color;
 
@@ -28,7 +29,7 @@ void main() {
     float curr_h = texture(u_texture_5, v_uv).r;
 
     const float height_scaling = 50.0;
-    const vec3 color = vec3(0.3, 0.3, 0.3);
+    vec3 color = vec3(0.3f, 0.3f, 0.3f);
 
     const float height_cutoff = 0.5;
     float wetness = curr_h < height_cutoff ? (texture(u_texture_3, v_uv)).r * 1.2 : 0;
@@ -60,7 +61,7 @@ void main() {
     vec3 specular = I * pow(max(0.f, dot(nd, h)), p) * (wetness + base_wetness) * specular_brightness;
 
     vec3 wo = normalize(u_cam_pos - vec3(v_position));
-    vec3 environment = vec3(texture(u_texture_cubemap, vec3(-wo.x, wo.y, -wo.z))) * wetness * 1.5;
+    vec3 environment = vec3(texture(u_texture_cubemap, vec3(-wo.x, wo.y, -wo.z))) * wetness * 1.2; //* pow(wetness, 2);
 
     float alpha = max(0, 1 - wetness) + (specular.r + environment.r) * 0.2 + 0.15;
 
