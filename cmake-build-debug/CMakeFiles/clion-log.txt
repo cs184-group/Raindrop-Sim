@@ -41,6 +41,22 @@ CMake Deprecation Warning at src/CMakeLists.txt:1 (cmake_minimum_required):
   CMake that the project does not need compatibility with older versions.
 
 
+CMake Warning (dev) at src/CMakeLists.txt:80 (target_link_libraries):
+  Policy CMP0023 is not set: Plain and keyword target_link_libraries
+  signatures cannot be mixed.  Run "cmake --help-policy CMP0023" for policy
+  details.  Use the cmake_policy command to set the policy and suppress this
+  warning.
+
+  The plain signature for target_link_libraries has already been used with
+  the target "clothsim".  All uses of target_link_libraries with a target
+  should be either all-keyword or all-plain.
+
+  The uses of the plain signature are here:
+
+   * src/CMakeLists.txt:72 (target_link_libraries)
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /Users/richard/Library/Mobile Documents/com~apple~CloudDocs/Academics/CS184/pf

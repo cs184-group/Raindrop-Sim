@@ -77,6 +77,7 @@ target_link_libraries(clothsim
 )
 include_directories( /usr/local/include/ )
 link_directories( /usr/local/lib/pkgconfig/glm )
+target_link_libraries(clothsim PRIVATE glm::glm)
 
 #-------------------------------------------------------------------------------
 # Platform-specific configurations for target

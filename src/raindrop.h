@@ -6,29 +6,27 @@
 #include "collision/sphere.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "deque"
 
 using namespace CGL;
 
-class RaindropRenderer
-{
+class SpriteRenderer {
 public:
-	RaindropRenderer();
-
-	void render(GLShader& shader, Vector3D& position, Vector3D& velocity);
+	SpriteRenderer();
 	void initRenderData();
 	void update_view(Matrix4f& view);
-	void update_proj(Matrix4f& projection, float screen_w, float screen_h);
-	void update_proj(float screen_w, float screen_h);
 	void update_texture_size(Vector3D& texture_size);
-private:
+protected:
 	unsigned int quadVAO;
 	Matrix4f view;
-	Matrix4f projection;
-	Matrix4f ortho_proj;
-	double size_x;
-	double size_y;
-	float screen_w;
-	float screen_h;
+	float size_x;
+	float size_y;
+};
+
+class RaindropRenderer : public SpriteRenderer {
+public:
+	using SpriteRenderer::SpriteRenderer;
+	void render(GLShader& shader, Vector3D& position, Vector3D& velocity);
 };
 
 class Raindrop {
@@ -40,6 +38,28 @@ public:
 	static Vector3D vel;
 	Vector3D pos;
 	Vector3D hit;
+};
+
+struct SplashInfo {
+	SplashInfo(Vector4f pos, unsigned int idx) : pos(pos), idx(idx) {}
+
+	Vector4f pos;
+	unsigned int idx;
+};
+
+class SplashRenderer : public SpriteRenderer {
+public:
+	SplashRenderer(int num_frames=20);
+
+	void initRenderData();
+
+	void render(GLShader& shader, SplashInfo &s);
+	void render_all(GLShader& shader, bool is_paused);
+	void add_splash(Vector3D& position);
+	deque<SplashInfo> splashes;
+	unsigned int end_idx;
+	float len_x;
+	float len_y;
 };
 
 #endif // CLOTHSIM_RAINDROP_H

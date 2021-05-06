@@ -18,7 +18,7 @@ public:
         this->r = r;
         this->collisionMapRes = width * height;
         wetMap = (char*) calloc((width * height + 3) / 4 * 4, sizeof(char));
-        collisionMap = (unsigned char*)calloc((collisionMapRes + 3) / 4 * 4, sizeof(unsigned char));
+        collisionMap = (unsigned char*) calloc((collisionMapRes + 103) / 4 * 4, sizeof(unsigned char));
     }
 
     ~ParticleSystem() {
@@ -50,14 +50,16 @@ public:
                   vector<Vector3D> external_accelerations,
                   vector<CollisionObject *> *collision_objects);
 
-    vector<Raindrop> raindrops;
+    void blur();
+    void load_splash_renderer(SplashRenderer *sr);
 
+    vector<Raindrop> raindrops;
     vector<Raindrop*> drops;
 
     // Spatial hashing
     unordered_map<float, vector<Raindrop *>*> map;
 
-    void blur();
+    SplashRenderer* splash_renderer;
 };
 
 

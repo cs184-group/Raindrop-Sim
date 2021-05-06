@@ -185,6 +185,10 @@ void GLShader::uploadAttrib(const std::string &name, size_t size, int dim,
         buffer.size = (GLuint) size;
         buffer.compSize = compSize;
     } else {
+        /*std::cout << this->mName << " missed " << name << std::endl;
+        for(auto it = mBufferObjects.cbegin(); it != mBufferObjects.cend(); ++it) {
+            std::cout << it->first << std::endl;
+        }*/
         glGenBuffers(1, &bufferID);
         Buffer buffer;
         buffer.id = bufferID;

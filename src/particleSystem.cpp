@@ -32,7 +32,7 @@ void ParticleSystem::updateWind(Vector3D wind_f) {
 void ParticleSystem::blur() {
     unsigned char *in, *out;
     in = collisionMap;
-    out = (unsigned char*) malloc(sizeof(unsigned char) * width * height);
+    out = (unsigned char*) malloc(sizeof(unsigned char) * (width * height + 103) /4 * 4);
 
     int w = width, h = height;
     // kernel: [1 m 1]
@@ -67,6 +67,10 @@ void ParticleSystem::blur() {
     free(out);
 }
 
+void ParticleSystem::load_splash_renderer(SplashRenderer* sr) {
+    splash_renderer = sr;
+}
+
 void ParticleSystem::simulate(double frames_per_sec, double simulation_steps, vector<Vector3D> external_accelerations,
                               vector<CollisionObject *> *collision_objects) {
     double delta_t = 1.0f / frames_per_sec / simulation_steps;
@@ -81,6 +85,7 @@ void ParticleSystem::simulate(double frames_per_sec, double simulation_steps, ve
             if (drops[i]->pos.y > 0) continue;
             Vector3D &hit = drops[i]->hit;
             if (hit.x >= 0 && hit.z >= 0 && hit.x < 8 && hit.z < 8) {
+                splash_renderer->add_splash(hit);
                 int hit_row = (int) round(hit.z / 8.0 * width);
                 int hit_col = (int) round(hit.x / 8.0 * height);
                 int index = hit_row * height + hit_col;

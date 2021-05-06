@@ -23,6 +23,7 @@ enum ShaderType {
     MESH_REF_SHADER_IDX = 4,
     RAIN_SHADER_IDX = 5,
     RAINDROP_SHADER_IDX = 6,
+    SPLASH_SHADER_IDX = 7,
 };
 
 class RainSimulator {
@@ -89,7 +90,7 @@ private:
     CGL::Vector3D wind = CGL::Vector3D(0.2, 0, 0.2);
     int t = 0; // counter for drawContents
 
-    nanogui::Color color = nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f);
+    nanogui::Color color = nanogui::Color(0.3f, 0.3f, 0.3f, 1.0f);
 
     vector<CollisionObject *> *collision_objects;
 
@@ -176,6 +177,7 @@ private:
     GLShader &prepareShader(int index);
 
     RaindropRenderer raindrop_renderer;
+    SplashRenderer splash_renderer;
 };
 
 struct UserShader {

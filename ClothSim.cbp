@@ -335,6 +335,7 @@
 					<Add directory="/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/Academics/CS184/pf/ext/nanogui/ext/nanovg/src"/>
 					<Add directory="/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/Academics/CS184/pf/ext/nanogui/ext/eigen"/>
 					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/local/lib"/>
 				</Compiler>
 				<MakeCommands>
 					<Build command="/usr/bin/make -f &quot;/Users/richard/Library/Mobile\ Documents/com~apple~CloudDocs/Academics/CS184/pf/src/Makefile&quot;  VERBOSE=1 clothsim"/>
@@ -363,6 +364,7 @@
 					<Add directory="/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/Academics/CS184/pf/ext/nanogui/ext/nanovg/src"/>
 					<Add directory="/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/Academics/CS184/pf/ext/nanogui/ext/eigen"/>
 					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/local/lib"/>
 				</Compiler>
 				<MakeCommands>
 					<Build command="/usr/bin/make -f &quot;/Users/richard/Library/Mobile\ Documents/com~apple~CloudDocs/Academics/CS184/pf/src/Makefile&quot;  VERBOSE=1 clothsim/fast"/>

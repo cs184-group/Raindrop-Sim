@@ -24,19 +24,28 @@ Vector3D load_texture(int frame_idx, GLuint handle, const char *where) {
 
     if (strlen(where) == 0) return size_retval;
 
-    glActiveTexture(GL_TEXTURE0 + frame_idx);
-    glBindTexture(GL_TEXTURE_2D, handle);
-
     unsigned char* img_data;
     int img_x, img_y, img_n;
-    if (frame_idx != 4) {
-        img_data = stbi_load(where, &img_x, &img_y, &img_n, 3);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_x, img_y, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data);
+
+    glActiveTexture(GL_TEXTURE0 + frame_idx);
+
+    if (frame_idx == 7) {
+        glBindTexture(GL_TEXTURE_RECTANGLE, handle);
+        img_data = stbi_load(where, &img_x, &img_y, &img_n, STBI_rgb_alpha);
+        glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, img_x, img_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data);
     }
     else {
-        img_data = stbi_load(where, &img_x, &img_y, &img_n, STBI_rgb_alpha);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_x, img_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data);
+        glBindTexture(GL_TEXTURE_2D, handle);
+        if (frame_idx != 4) {
+            img_data = stbi_load(where, &img_x, &img_y, &img_n, 3);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_x, img_y, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data);
+        }
+        else {
+            img_data = stbi_load(where, &img_x, &img_y, &img_n, STBI_rgb_alpha);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_x, img_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data);
+        }
     }
+
     size_retval.x = img_x;
     size_retval.y = img_y;
     size_retval.z = img_n;
@@ -105,11 +114,12 @@ void RainSimulator::load_textures() {
     m_gl_texture_4_size = load_texture(4, m_gl_texture_4, (m_project_root + "/textures/raindrop.png").c_str());
     m_gl_texture_5_size = load_texture(5, m_gl_texture_5, (m_project_root + "/textures/ground_bump.png").c_str());
     m_gl_texture_6_size = load_texture(6, m_gl_texture_6, (m_project_root + "/textures/fake_wetmap.png").c_str());
-    m_gl_texture_7_size = load_texture(7, m_gl_texture_7, (m_project_root + "/textures/texture_1.png").c_str());
+    m_gl_texture_7_size = load_texture(7, m_gl_texture_7, (m_project_root + "/textures/splash.png").c_str());
     m_gl_texture_8_size = load_texture(8, m_gl_texture_8, (m_project_root + "/textures/texture_1.png").c_str());
 
     // Update raindrop texture size.
     raindrop_renderer.update_texture_size(m_gl_texture_4_size);
+    splash_renderer.update_texture_size(m_gl_texture_7_size);
 
     std::cout << "Texture 1 loaded with size: " << m_gl_texture_1_size << std::endl;
     std::cout << "Texture 2 loaded with size: " << m_gl_texture_2_size << std::endl;
@@ -201,7 +211,7 @@ void RainSimulator::load_shaders() {
             swap(shaders[i], shaders[RAINDROP_SHADER_IDX]);
         }
     }*/
-    for (size_t j = 0; j < 7; j++) {
+    for (size_t j = 0; j <= 8; j++) {
         for (size_t i = 0; i < temp_shaders.size(); ++i) {
             if ((temp_shaders[i].display_name == "Ground" && j == GROUND_SHADER_IDX) ||
                 (temp_shaders[i].display_name == "Custom" && j == MESH_SHADER_IDX) ||
@@ -209,7 +219,8 @@ void RainSimulator::load_shaders() {
                 (temp_shaders[i].display_name == "Sphere" && j == SPHERE_SHADER_IDX) ||
                 (temp_shaders[i].display_name == "SphereReflected" && j == SPHERE_REF_SHADER_IDX) ||
                 (temp_shaders[i].display_name == "Rain" && j == RAIN_SHADER_IDX) ||
-                (temp_shaders[i].display_name == "Raindrop" && j == RAINDROP_SHADER_IDX)) {
+                (temp_shaders[i].display_name == "Raindrop" && j == RAINDROP_SHADER_IDX) || 
+                (temp_shaders[i].display_name == "Splash" && j == SPLASH_SHADER_IDX)) {
 //                cout << j << temp_shaders[i].display_name << endl;
                 shaders.push_back(temp_shaders[i]);
                 break;
@@ -224,10 +235,10 @@ void RainSimulator::load_shaders() {
 RainSimulator::RainSimulator(std::string project_root, Screen *screen)
         : m_project_root(project_root) {
     this->screen = screen;
-
+    splash_renderer = SplashRenderer(21);
     this->load_shaders();
     this->load_textures();
-
+    splash_renderer.initRenderData();
     glEnable(GL_PROGRAM_POINT_SIZE);
     glEnable(GL_DEPTH_TEST);
 }
@@ -265,6 +276,7 @@ void RainSimulator::init() {
     //rainSystem = new ParticleSystem(128, 128, 100);
     rainSystem = new ParticleSystem(128, 128, 1000, 0.16);
     rainSystem->init_raindrops();
+    rainSystem->load_splash_renderer(&splash_renderer);
 
     // Initialize camera
 
@@ -320,13 +332,17 @@ GLShader &RainSimulator::prepareShader(int index) {
 
     if (index == RAINDROP_SHADER_IDX) {
         raindrop_renderer.update_view(view);
-        raindrop_renderer.update_proj(projection, screen_w, screen_h);
-        //raindrop_renderer.initRenderData();
+        shader.setUniform("u_view_projection", projection);
 
         // Textures
         shader.setUniform("u_texture_4_size", Vector2f(m_gl_texture_4_size.x, m_gl_texture_4_size.y), false);
         shader.setUniform("u_texture_4", 4, false);
         shader.setUniform("u_texture_cubemap", 9, false);
+        return shader;
+    } else if (index == SPLASH_SHADER_IDX) {
+        splash_renderer.update_view(view);
+        shader.setUniform("u_view_projection", projection);
+        shader.setUniform("u_texture_7", 7, false);
         return shader;
     }
 
@@ -366,6 +382,8 @@ GLShader &RainSimulator::prepareShader(int index) {
     return shader;
 }
 
+static int i = 0;
+
 void RainSimulator::drawContents() {
     glEnable(GL_DEPTH_TEST);
 
@@ -387,9 +405,7 @@ void RainSimulator::drawContents() {
         vector<Vector3D> external_accelerations = {gravity};
         rainSystem->updateWind(cur_wind);
 
-        for (int i = 0; i < simulation_steps; i++) {
-            rainSystem->simulate(frames_per_sec, simulation_steps, external_accelerations, collision_objects);
-        }
+        rainSystem->simulate(frames_per_sec, simulation_steps, external_accelerations, collision_objects);
         // dyn_texture(1, m_gl_texture_1, rainSystem->wetMap, rainSystem->width, rainSystem->height);
         
     }
@@ -400,18 +416,21 @@ void RainSimulator::drawContents() {
     GLShader &shader = prepareShader(MESH_SHADER_IDX);
     drawMesh(shader);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+
     shader = prepareShader(RAINDROP_SHADER_IDX);
     for (int i = 0; i < rainSystem->drops.size(); i += 1) {
         rainSystem->drops[i]->render(shader, raindrop_renderer);
     }
 
-    shader = prepareShader(RAINDROP_SHADER_IDX);
+    /*shader = prepareShader(RAINDROP_SHADER_IDX);
     Vector3D pos(0.5, 0.2, 0.5);
-    Vector3D vel(1.0, 1.0, 0.0);
-    raindrop_renderer.render(shader, pos, vel);
+    Vector3D vel(0.0, 1.0, 0.0);
+    raindrop_renderer.render(shader, pos, vel);*/
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA); 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
 
     // Everything except the plane
     for (CollisionObject *co : *collision_objects) {
@@ -436,11 +455,20 @@ void RainSimulator::drawContents() {
             shader = prepareShader(GROUND_SHADER_IDX);
             dyn_texture(3, m_gl_texture_3, rainSystem->collisionMap, rainSystem->width, rainSystem->height);
             glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
             co->render(shader);
             break;
         }
     }
+
+    Vector3D pos(0.5, 0.2, 0.5);
+    shader = prepareShader(SPLASH_SHADER_IDX);
+    if (splash_renderer.splashes.size() < 1) {
+        splash_renderer.add_splash(pos);
+    }
+    glEnable(GL_BLEND);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+    splash_renderer.render_all(shader, is_paused);
 }
 
 void RainSimulator::drawMesh(GLShader &shader) {
