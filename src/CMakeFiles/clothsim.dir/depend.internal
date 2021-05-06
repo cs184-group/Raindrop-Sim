@@ -1090,6 +1090,7 @@ src/CMakeFiles/clothsim.dir/misc/file_utils.cpp.o
 src/CMakeFiles/clothsim.dir/misc/sphere_drawing.cpp.o
  /Users/richard/Library/Mobile Documents/com~apple~CloudDocs/Academics/CS184/pf/src/misc/sphere_drawing.cpp
  /Users/richard/Library/Mobile Documents/com~apple~CloudDocs/Academics/CS184/pf/src/misc/sphere_drawing.h
+ /usr/local/include/omp.h
  CGL/include/CGL/CGL.h
  CGL/include/CGL/color.h
  CGL/include/CGL/misc.h
