@@ -163,7 +163,8 @@ void SplashRenderer::render(GLShader& shader, SplashInfo &s) {
 	shader.setUniform("u_offset", offset);
 	shader.setUniform("u_model", u_model);
     float dist = -pos(2); //(position - Vector3D(4.0, 4.0, 4.0)).norm();
-    shader.setUniform("opacity", clamp(3.f / dist, 0.f, 1.f));
+    shader.setUniform("u_world_pos", s.pos);
+    shader.setUniform("opacity", clamp(3.f / dist, 0.f, 1.f), false);
 	glBindVertexArray(this->quadVAO);
 
 	shader.drawArray(GL_TRIANGLES, 0, 6);
@@ -173,7 +174,7 @@ void SplashRenderer::render(GLShader& shader, SplashInfo &s) {
 void SplashRenderer::render_all(GLShader& shader, bool is_paused) {
 	int c = 0;
 	for (SplashInfo &s : splashes) {
-		if (s.idx == end_idx)
+		if (s.idx >= end_idx - 4)
 			c++;
 		if (!is_paused)
 			s.idx += 4;

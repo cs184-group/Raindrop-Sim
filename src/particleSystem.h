@@ -37,6 +37,7 @@ public:
     unsigned int height;
     int collisionMapRes;
     int count;
+    float level;
     Vector3D velocity;
     Vector3D wind_f;
 

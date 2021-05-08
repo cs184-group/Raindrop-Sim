@@ -342,6 +342,9 @@ GLShader &RainSimulator::prepareShader(int index) {
     } else if (index == SPLASH_SHADER_IDX) {
         splash_renderer.update_view(view);
         shader.setUniform("u_view_projection", projection);
+        shader.setUniform("avg_color", rainSystem->level / 256.f);
+        shader.setUniform("u_texture_5_size", Vector2f(m_gl_texture_5_size.x, m_gl_texture_5_size.y), false);
+        shader.setUniform("u_texture_5", 5, false);
         shader.setUniform("u_texture_7", 7, false);
         return shader;
     }
@@ -456,6 +459,7 @@ void RainSimulator::drawContents() {
             dyn_texture(3, m_gl_texture_3, rainSystem->collisionMap, rainSystem->width, rainSystem->height);
             glEnable(GL_BLEND);
             glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+            shader.setUniform("avg_color", rainSystem->level / 256.f);
             co->render(shader);
             break;
         }
