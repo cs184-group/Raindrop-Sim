@@ -37,7 +37,8 @@
     </video>
 
     <h4 align="center">Raindrop Splashes</h4>
-    <p>We render splashes as an animation with each frame sampled from the textures below. The texture incorporates a single filmed high-quality milk drop splash sequence (referenced from <a href="index.html#ref">Artist-Directable Real-Time Rain Rendering in City Environments</a>). Everytime a raindrop collides with the ground, a splash is generated at the collision point with its size randomized to mitigate visual repetition of the same splash textures. We also change the opacity of splashes based on the wetness degree of the ground to trick viewers that no splashes seem to be on the dry ground. </p>
+    <p>We render splashes as an animation with each frame sampled from the texture below. The texture incorporates a single filmed high-quality milk drop splash sequence (referenced from <a href="index.html#ref">Artist-Directable Real-Time Rain Rendering in City Environments</a>). Everytime a raindrop collides with the ground, a splash is generated at the collision point with its size randomized to mitigate visual repetition of the same splash textures. We also change the opacity of splashes based on the wetness degree of the ground to trick viewers that no splashes seem to be on the dry ground. </p>
+    <img width="800" src="../textures/splash.png">
     <p>Each splash is rendered as a point splash in the screen space. To do this in OPENGL, we bind a \(1 \times 1\) quad to the splash and translate it to the colliding position in view space. The texture coordinates is rotated based on the normal of the collision point and scaled based on the splash size. Finally, apply projection transformation as usual. Below is a video that shows a closer look at splashes.</p>
     <video width="800" controls>
       <source src="img/splashes.mp4" type="video/mp4">
