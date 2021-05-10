@@ -330,6 +330,7 @@ GLShader &RainSimulator::prepareShader(int index) {
     GLShader &shader = *active_shader.nanogui_shader;
     // Bind the active shader
     shader.bind();
+    Matrix4f viewProjection = projection * view;
 
     if (index == RAINDROP_SHADER_IDX) {
         raindrop_renderer.update_view(view);
@@ -353,8 +354,6 @@ GLShader &RainSimulator::prepareShader(int index) {
         shader.setUniform("u_texture_8_size", Vector2f(m_gl_texture_8_size.x, m_gl_texture_8_size.y), false);
         return shader;
     }
-
-    Matrix4f viewProjection = projection * view;
 
     shader.setUniform("u_model", model);
     shader.setUniform("u_view_projection", viewProjection);
