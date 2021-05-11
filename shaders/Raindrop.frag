@@ -5,10 +5,12 @@ out vec4 out_color;
 
 uniform sampler2D u_texture_4;
 uniform float opacity;
+uniform float lighting_distance;
 
 void main() {
   vec4 color = texture(u_texture_4, v_texcoords);
-  float alpha = color.a * opacity;
+  float alpha = color.a * ((opacity + lighting_distance) / 2);
+
   if (alpha <= 0.1) {
   	discard;
   } else {
