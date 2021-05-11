@@ -345,8 +345,8 @@ CGL/src/CMakeFiles/CGL.dir/clean:
 # Target rules for target src/CMakeFiles/clothsim.dir
 
 # All Build rule for target.
-src/CMakeFiles/clothsim.dir/all: ext/nanogui/CMakeFiles/nanogui.dir/all
 src/CMakeFiles/clothsim.dir/all: CGL/src/CMakeFiles/CGL.dir/all
+src/CMakeFiles/clothsim.dir/all: ext/nanogui/CMakeFiles/nanogui.dir/all
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/clothsim.dir/build.make src/CMakeFiles/clothsim.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/clothsim.dir/build.make src/CMakeFiles/clothsim.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir="/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/Academics/CS184/pf/CMakeFiles" --progress-num=14,15,16,17,18,19,20,21,22,23,24 "Built target clothsim"

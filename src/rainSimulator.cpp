@@ -211,7 +211,7 @@ void RainSimulator::load_shaders() {
             swap(shaders[i], shaders[RAINDROP_SHADER_IDX]);
         }
     }*/
-    for (size_t j = 0; j <= 8; j++) {
+    for (size_t j = 0; j <= 9; j++) {
         for (size_t i = 0; i < temp_shaders.size(); ++i) {
             if ((temp_shaders[i].display_name == "Ground" && j == GROUND_SHADER_IDX) ||
                 (temp_shaders[i].display_name == "Custom" && j == MESH_SHADER_IDX) ||
@@ -220,7 +220,8 @@ void RainSimulator::load_shaders() {
                 (temp_shaders[i].display_name == "SphereReflected" && j == SPHERE_REF_SHADER_IDX) ||
                 (temp_shaders[i].display_name == "Rain" && j == RAIN_SHADER_IDX) ||
                 (temp_shaders[i].display_name == "Raindrop" && j == RAINDROP_SHADER_IDX) || 
-                (temp_shaders[i].display_name == "Splash" && j == SPLASH_SHADER_IDX)) {
+                (temp_shaders[i].display_name == "Splash" && j == SPLASH_SHADER_IDX) ||
+                (temp_shaders[i].display_name == "Screenspace" && j == SCREENSPACE_SHADER_IDX)) {
 //                cout << j << temp_shaders[i].display_name << endl;
                 shaders.push_back(temp_shaders[i]);
                 break;
@@ -287,9 +288,9 @@ void RainSimulator::init() {
     camera_info.fClip = 10000;
 
     // TODO: figure out the best parameters in this part
-    CGL::Vector3D target(1, 1 / 2, 1);
-    CGL::Vector3D c_dir(0., 0., 0.);
-    canonical_view_distance = 10;
+    CGL::Vector3D target(4, 1 / 2, 4);
+    CGL::Vector3D c_dir(-1, .5, 1);
+    canonical_view_distance = 5;
     scroll_rate = canonical_view_distance / 10;
 
     view_distance = canonical_view_distance * 2;
@@ -329,6 +330,7 @@ GLShader &RainSimulator::prepareShader(int index) {
     GLShader &shader = *active_shader.nanogui_shader;
     // Bind the active shader
     shader.bind();
+    Matrix4f viewProjection = projection * view;
 
     if (index == RAINDROP_SHADER_IDX) {
         raindrop_renderer.update_view(view);
@@ -342,11 +344,16 @@ GLShader &RainSimulator::prepareShader(int index) {
     } else if (index == SPLASH_SHADER_IDX) {
         splash_renderer.update_view(view);
         shader.setUniform("u_view_projection", projection);
+        shader.setUniform("avg_color", rainSystem->level / 256.f);
+        shader.setUniform("u_texture_5_size", Vector2f(m_gl_texture_5_size.x, m_gl_texture_5_size.y), false);
+        shader.setUniform("u_texture_5", 5, false);
         shader.setUniform("u_texture_7", 7, false);
         return shader;
+    } else if (index == SCREENSPACE_SHADER_IDX) {
+        shader.setUniform("u_texture_8", 8, false);
+        shader.setUniform("u_texture_8_size", Vector2f(m_gl_texture_8_size.x, m_gl_texture_8_size.y), false);
+        return shader;
     }
-
-    Matrix4f viewProjection = projection * view;
 
     shader.setUniform("u_model", model);
     shader.setUniform("u_view_projection", viewProjection);
@@ -355,7 +362,7 @@ GLShader &RainSimulator::prepareShader(int index) {
     shader.setUniform("u_color", color, false);
     shader.setUniform("u_cam_pos", Vector3f(cam_pos.x, cam_pos.y, cam_pos.z), false);
     shader.setUniform("u_light_pos", Vector3f(4, 4, 4), false);
-    shader.setUniform("u_light_intensity", Vector3f(10, 10, 10), false);
+    shader.setUniform("u_light_intensity", Vector3f(6, 6, 6), false);
     shader.setUniform("u_texture_1_size", Vector2f(m_gl_texture_1_size.x, m_gl_texture_1_size.y), false);
     shader.setUniform("u_texture_2_size", Vector2f(m_gl_texture_2_size.x, m_gl_texture_2_size.y), false);
     shader.setUniform("u_texture_3_size", Vector2f(rainSystem->width, rainSystem->height), false);
@@ -416,14 +423,6 @@ void RainSimulator::drawContents() {
     GLShader &shader = prepareShader(MESH_SHADER_IDX);
     drawMesh(shader);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
-
-    shader = prepareShader(RAINDROP_SHADER_IDX);
-    for (int i = 0; i < rainSystem->drops.size(); i += 1) {
-        rainSystem->drops[i]->render(shader, raindrop_renderer);
-    }
-
     /*shader = prepareShader(RAINDROP_SHADER_IDX);
     Vector3D pos(0.5, 0.2, 0.5);
     Vector3D vel(0.0, 1.0, 0.0);
@@ -432,20 +431,93 @@ void RainSimulator::drawContents() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
 
-    // Everything except the plane
+//  GLuint rbo;
+//  glGenRenderbuffers(1, &rbo);
+//  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+//  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+//  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+//    glActiveTexture(GL_TEXTURE8);
+
+    glViewport(0, 0, screen_w, screen_h);
+
+    // half resolution reflections
+    int ref_w = screen_w / 2, ref_h = screen_h / 2;
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_2D, m_gl_texture_8);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ref_w, ref_h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gl_texture_8, 0);
+
+    glViewport(0, 0, ref_w, ref_h);
+
+    GLuint rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screen_w, screen_h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Reflected objects only
     for (CollisionObject *co : *collision_objects) {
         if (typeid(*co) == typeid(Sphere)) {
             if (((Sphere*) co)->is_reflected) {
                 shader = prepareShader(SPHERE_REF_SHADER_IDX);
+                co->render(shader);
+            }
+        }
+    }
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//                glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glClearColor(1.f, 1.f, 1.f, 1.f);
+    glViewport(0, 0, screen_w, screen_h);
+
+    shader = prepareShader(SCREENSPACE_SHADER_IDX);
+    Vector2f topright(1.0, 1.0);
+    Vector2f topleft(0.0, 1.0);
+    Vector2f bottomright(1.0, 0.0);
+    Vector2f bottomleft(0.0, 0.0);
+    MatrixXf texcoords(2, 4);
+    texcoords.col(0) << topright;
+    texcoords.col(1) << topleft;
+    texcoords.col(2) << bottomright;
+    texcoords.col(3) << bottomleft;
+    shader.uploadAttrib("v_uv", texcoords);
+    glDisable(GL_DEPTH_TEST);
+    shader.drawArray(GL_TRIANGLE_STRIP, 0, 4);
+    glEnable(GL_DEPTH_TEST);
+    shader.freeAttrib("v_uv");
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteRenderbuffers(1, &rbo);
+
+    // Everything except the plane
+    for (CollisionObject *co : *collision_objects) {
+        if (typeid(*co) == typeid(Sphere)) {
+            if (((Sphere*) co)->is_reflected) {
+                continue;
             } else {
                 shader = prepareShader(SPHERE_SHADER_IDX);
+                co->render(shader);
             }
         } else if (typeid(*co) == typeid(Plane)) {
             continue;
         } else {
             shader = prepareShader(-1);
+            co->render(shader);
         }
-        co->render(shader);
     }
 
     // The plane
@@ -456,18 +528,26 @@ void RainSimulator::drawContents() {
             dyn_texture(3, m_gl_texture_3, rainSystem->collisionMap, rainSystem->width, rainSystem->height);
             glEnable(GL_BLEND);
             glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+            shader.setUniform("avg_color", rainSystem->level / 256.f);
             co->render(shader);
             break;
         }
     }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+
+    shader = prepareShader(RAINDROP_SHADER_IDX);
+    for (int i = 0; i < rainSystem->drops.size(); i += 1) {
+        rainSystem->drops[i]->render(shader, raindrop_renderer);
+    }
+
 
     Vector3D pos(0.5, 0.2, 0.5);
     shader = prepareShader(SPLASH_SHADER_IDX);
     if (splash_renderer.splashes.size() < 1) {
         splash_renderer.add_splash(pos);
     }
-    glEnable(GL_BLEND);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
     splash_renderer.render_all(shader, is_paused);
 }
 
@@ -694,6 +774,8 @@ bool RainSimulator::scrollCallbackEvent(double x, double y) {
 bool RainSimulator::resizeCallbackEvent(int width, int height) {
     screen_w = width;
     screen_h = height;
+    cout << "resize to " << width << " " << height << endl;
+    glViewport(0, 0, width, height);
 
     camera.set_screen_size(screen_w, screen_h);
     return true;
@@ -728,7 +810,7 @@ void RainSimulator::initGUI(Screen *screen) {
         fsec->setSpinnable(true);
         fsec->setCallback([this](int value) { frames_per_sec = value; });
 
-        new Label(panel, "steps/frame :", "sans-bold");
+        /*new Label(panel, "steps/frame :", "sans-bold");
 
         IntBox<int> *num_steps = new IntBox<int>(panel);
         num_steps->setEditable(true);
@@ -737,7 +819,7 @@ void RainSimulator::initGUI(Screen *screen) {
         num_steps->setValue(simulation_steps);
         num_steps->setSpinnable(true);
         num_steps->setMinValue(0);
-        num_steps->setCallback([this](int value) { simulation_steps = value; });
+        num_steps->setCallback([this](int value) { simulation_steps = value; });*/
     }
 
     // Gravity
@@ -788,7 +870,8 @@ void RainSimulator::initGUI(Screen *screen) {
 
     // Wind
 
-    new Label(window, "Wind", "sans-bold");
+    // TODO: revert
+/*    new Label(window, "Wind", "sans-bold");
 
     {
         Widget *panel = new Widget(window);
@@ -830,25 +913,27 @@ void RainSimulator::initGUI(Screen *screen) {
         fb->setUnits("m/s");
         fb->setSpinnable(true);
         fb->setCallback([this](float value) { wind.z = value; });
-    }
+    }*/
 
-    window = new Window(screen, "Appearance");
+// TODO: end revert
+
+   /* window = new Window(screen, "Appearance");
     window->setPosition(Vector2i(15, 15));
-    window->setLayout(new GroupLayout(15, 6, 14, 5));
+    window->setLayout(new GroupLayout(15, 6, 14, 5));*/
 
     // Appearance
 
-    {
+    /*{
         ComboBox *cb = new ComboBox(window, shaders_combobox_names);
         cb->setFontSize(14);
         cb->setCallback(
                 [this, screen](int idx) { active_shader_idx = idx; });
         cb->setSelectedIndex(active_shader_idx);
-    }
+    }*/
 
     // Shader Parameters
 
-    new Label(window, "Color", "sans-bold");
+    /*new Label(window, "Color", "sans-bold");
 
     {
         ColorWheel *cw = new ColorWheel(window, color);
@@ -886,5 +971,5 @@ void RainSimulator::initGUI(Screen *screen) {
         fb->setValue(this->m_height_scaling);
         fb->setSpinnable(true);
         fb->setCallback([this](float value) { this->m_height_scaling = value; });
-    }
+    }*/
 }

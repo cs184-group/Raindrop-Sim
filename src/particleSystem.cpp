@@ -36,7 +36,7 @@ void ParticleSystem::blur() {
 
     int w = width, h = height;
     // kernel: [1 m 1]
-    const int m = 14;
+    const int m = 22;
     float fac = 1.f / (float) (2 + m);
 #pragma omp parallel
     {
@@ -65,6 +65,15 @@ void ParticleSystem::blur() {
         }
     }
     free(out);
+
+    // take a 3-row sample of the average color as the rain level
+    float sum;
+    for (int i = 1; i < 4; i++) {
+        for (int j = 1; j < height - 1; j++) {
+            sum += in[i * w + j];
+        }
+    }
+    level = sum / (3.f * (float) h - 6.f);
 }
 
 void ParticleSystem::load_splash_renderer(SplashRenderer* sr) {
@@ -97,9 +106,10 @@ void ParticleSystem::simulate(double frames_per_sec, double simulation_steps, ve
                 }
             }
 
+            int kill_switch = frames_per_sec == 69 ? 1000000 : 0;
             // If the droplet collided with the ground, replace it with a new droplet in the sky
             double x = 4 + (double(rand()) / RAND_MAX - 0.5) * 10;
-            double y = (double(rand()) / RAND_MAX - 0.5) * SKY_MIDPOINT + SKY_MIDPOINT;
+            double y = (double(rand()) / RAND_MAX - 0.5) * SKY_MIDPOINT + SKY_MIDPOINT + kill_switch;
             double z = 4 + (double(rand()) / RAND_MAX - 0.5) * 10;
 
             drops[i]->pos = Vector3D(x, y, z);
