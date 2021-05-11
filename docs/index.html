@@ -22,14 +22,24 @@
     <h3>CS 184</h3>
     <h3>Richard Yan, Sher Shah, Qingyuan Liu, Joie Zhou</h3>
   </div>
+  <div class="toc">
+    Table of Contents
+    <ul>
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#technical-approach">Technical Approach</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#references">References</a></li>
+      <li><a href="#contributions">Contributions</a></li>
+    </ul>
+  </div>
 
   <div class="container container-report">
-    <h3>Abstract</h3>
+    <h3 id="abstract">Abstract</h3>
     <p>
-        Video games often use rainy scenes to add realism, ambience, and emotion to in-game environments. However, real-time realistic rain rendering is difficult to perform due to its computational and visual complexity. In our project, we implemented a real-time rain simulator in which rain particles fall onto a gravel-like surface, wetting the ground until it begins to show puddles reflecting the scene, on which the rain particles splash. We built upon the Project 4 codebase to make a particle interface in which point-sprite particles fall and collide with the plane, with velocity controlled by variable wind, updating a wetmap with kernel blur upon collision. We used this wetmap to update a dynamically changing texture map sampled by the ground shader. The ground shader used a combination of lambertian shading, phong shading, environmental texture, and bump mapping to generate a realistic surface that mirrored the scene below the ground plane to create the illusion of reflectance. We rendered point-sprite splashes at sites of collision and adjusted their opacity based on the wetmap. Finally, we used parallel computing of the dynamic texture map shading to allow for efficient real-time rendering. In our implementation process, we ran into challenges in debugging shaders, making raster graphics seem realistic, and laggy simulations. We found that using reference images can help in building shaders. For more realistic raster graphics, we took notes from tricks old video-games like DOOM used. To get around laggy or interrupted simulations, we debugged memory leaks and used parallelism. By building a realistic real-time rain simulator, we learned how to create and map dynamic textures, generate point sprites, implement particle interfaces, and a wide variety of techniques for building more realistic environments.
+        Video games often use rainy scenes to add realism, ambience, and emotion to in-game environments. However, real-time realistic rain rendering is difficult to perform due to its computational and visual complexity. In our project, we implemented a real-time rain simulator in which rain particles fall onto a gravel-like surface, wetting the ground until it begins to show puddles reflecting the scene, on which the rain particles splash. We built upon the Project 4 codebase to make a particle interface in which point-sprite particles fall and collide with the plane, with velocity controlled by variable wind, updating a wetmap with kernel blur upon collision. We used this wetmap to update a dynamically changing texture map sampled by the ground shader. The ground shader used a combination of lambertian shading, phong shading, environmental texture, and bump mapping to generate a realistic surface that mirrored the scene below the ground plane to create the illusion of reflectance. We rendered point-sprite splashes at sites of collision and adjusted their opacity based on the wetmap. Finally, we used parallel computing of the dynamic texture map shading to allow for efficient real-time rendering. In our implementation process, we ran into challenges in debugging shaders, making raster graphics seem realistic, and laggy simulations. We found that using reference images can help in building shaders. For more realistic raster graphics, we took notes from tricks old video-games used. To get around laggy or interrupted simulations, we debugged memory leaks and used parallelism. By building a realistic real-time rain simulator, we learned how to create and map dynamic textures, generate point sprites, implement particle interfaces, and a wide variety of techniques for building more realistic environments.
     </p>
 
-    <h3>Technical Approach and Results</h3>
+    <h3><a id="technical-approach">Technical Approach</a></h3>
 
     <h4>Particle Simulation</h4>
     <p>
@@ -60,6 +70,7 @@
     <p>Here's a video demonstrating the dynamic painting and blurring procedure:</p>
     <!-- TODO: add dynamic painting video here -->
     <p>This 2D array in memory is then transported to the GPU using the <code>GLTexImage2D</code> function. To increase performance, we try to minimize the amount of data transferred and stored. As a result, we use the data representation <code>GL_RED</code> to send over a monochrome image, 8 bits per pixel. To further facilitate faster transfer times, 4 bytes are transferred at a time. The map is initialized to a multiple of 4 bytes to accommodate that.</p>
+    <p>A helpful lesson learned was to observe real life: nature is an inspiration for many solutions.</p>
     <h4>Shaders & Reflections</h4>
     <p>To make a realistic ground with reflections, a lot of factors are considered. The technical approach is roughly divided into the following sections: ground lighting, reflection tricks and screen space effects.</p>
     <h5>Ground Lighting</h5>
@@ -80,14 +91,14 @@
     <figure>
       <!-- TODO: add reflection blur pic -->
     </figure>
-
-    <h4>Results</h4>
+    <p>A major lesson learned is to take pages from video games, which are the culminations of years of head-scratching from raster engine developers. For example, for reflections, the three options were widely used in video games, and the advantages/disadvantages were clear. We can then choose appropriately weighing the pros and cons.</p>
+    <h3><a id="results">Results</a></h3>
     <!-- TODO: maybe some more nice pics -->
 
-    <h3>References</h3>
+    <h3><a id="references">References</a></h3>
     <p><a href="https://link.springer.com/chapter/10.1007/11686699_63">Real-time Rain Simulation</a></p>
     <p><a href="http://developer.amd.com/wordpress/media/2012/10/Tatarchuk-Isidoro-Rain%28EGWNph06%29.pdf">Artist-Directable Real-Time Rain Rendering in City Environments</a></p>
-    <h3>Contributions</h3>
+    <h3><a id="contributions">Contributions</a></h3>
     <p>Richard Yan: Project idea. Created project code skeleton from ClothSim codebase, implemented ground and scene object shaders, dynamic painting, and screen space effects. Optimized particle simulation for performance. Helped tuning appearance of raindrop and splash particles.</p>
     <p>Sher Shah: </p>
     <p>Qingyuan Liu: Implemented rendering of raindrops and splashes and helped setup the particle system.</p>

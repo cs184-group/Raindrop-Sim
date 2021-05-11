@@ -35,6 +35,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "../ext/nanogui/ext/glfw/include"
   "../ext/nanogui/ext/nanovg/src"
   "../ext/nanogui/ext/eigen"
+  "/usr/local/include"
   "/usr/local/lib"
   )
 
